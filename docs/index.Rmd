@@ -8,7 +8,127 @@ output:
 ---
 
 # Part I: Repository and Workflow
+
 # Part II: Web Scraping
+
+
+## Question 1: Scrape a Table
+
+
+```{r}
+# Loading packages used for web scraping and data cleaning per the lectures
+library(rvest)
+library(dplyr)
+library(janitor)
+library(stringr)
+
+```
+
+
+
+
+```{r}
+# Reading the Wikipedia page containing Chicago community areas
+
+url <- "https://en.wikipedia.org/wiki/Community_areas_in_Chicago"
+
+community_page <- read_html(url)
+
+# Extract all tables from the page and let's inspect them
+
+tables <- community_page %>%
+  html_elements("table") %>%
+  html_table()
+
+# Display the number of tables found
+
+length(tables)
+
+# we have 5 tables displaying. The likely table we need is #2 with 78 rows 
+# and 13 columns
+
+```
+
+
+```{r}
+# Examine the table that contains Chicago community areas
+
+head(tables[[2]])
+```
+
+
+
+```{r}
+# I'm now storing the community areas table and cleaning the column names
+
+community_areas <- tables[[2]] %>%
+  clean_names()
+
+# Displaying column names
+
+names(community_areas)
+
+# Displaing dimensions
+
+dim(community_areas)
+
+# All column names match the Wikipedia site :) 
+
+```
+
+
+```{r}
+# Now I display the last rows of the table to locate the citywide total row. Checked
+# for the tail command to inspect what is the name of the last row. It's named 
+# Chicago
+
+tail(community_areas)
+```
+
+
+
+
+```{r}
+
+# I now remove the citywide Chicago total row
+
+community_areas <- community_areas %>%
+  filter(name != "Chicago")
+
+# Now I must convert total population from character to numeric value
+
+community_areas <- community_areas %>%
+  mutate(
+    total_population = as.numeric(
+      str_remove_all(total_population, ",")
+    )
+  )
+
+# Checking there are now 77 community areas
+
+dim(community_areas)
+
+```
+
+
+
+```{r}
+# Now I want to show the row for West Town
+
+community_areas %>%
+  filter(name == "West Town")
+
+# Display the 5 community areas with the largest populations
+
+community_areas %>%
+  arrange(desc(total_population)) %>%
+  head(5)
+```
+
+
+
+
+
 # Part III: Open Data API
 # Part IV: Census API
 # Part V: Civic Data Ethics
