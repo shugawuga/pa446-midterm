@@ -1,0 +1,16 @@
+---
+title: "PA 446 Midterm"
+author: "Pablo R Valenzuela"
+date: "`r Sys.Date()`"
+output:
+  html_document:
+    theme: cosmo
+---
+
+# Part I: Repository and Workflow
+# Part II: Web Scraping
+# Part III: Open Data API
+# Part IV: Census API
+# Part V: Civic Data Ethics
+# AI Use Statement
+
