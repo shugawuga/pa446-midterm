@@ -11,7 +11,7 @@
 
 <meta name="author" content="Pablo R Valenzuela" />
 
-<meta name="date" content="2026-10-16" />
+<meta name="date" content="2026-10-17" />
 
 <title>PA 446 Midterm</title>
 
@@ -370,7 +370,7 @@ display: none;
 
 <h1 class="title toc-ignore">PA 446 Midterm</h1>
 <h4 class="author">Pablo R Valenzuela</h4>
-<h4 class="date">2026-10-16</h4>
+<h4 class="date">2026-10-17</h4>
 
 </div>
 
@@ -690,6 +690,161 @@ head(books_tbl)</code></pre>
 </div>
 <div id="part-iii-open-data-api" class="section level1">
 <h1>Part III: Open Data API</h1>
+<div id="question-1-requesting-data" class="section level2">
+<h2>Question 1: Requesting Data</h2>
+<pre class="r"><code># Loading packages for API requests and JSON parsing just like in the lectures
+
+library(httr)</code></pre>
+<pre><code>## Warning: package &#39;httr&#39; was built under R version 4.5.3</code></pre>
+<pre class="r"><code>library(jsonlite)
+library(dplyr)</code></pre>
+<pre class="r"><code># API endpoint for Chicago 311 service requests. endpoint is the website 
+
+endpoint &lt;- &quot;https://data.cityofchicago.org/resource/v6vf-nfxy.json&quot;
+
+# Request the 1,000 most recent West Town requests from 2026 onward
+
+response &lt;- GET(
+  endpoint,
+  query = list(
+    community_area = &quot;24&quot;,
+    `$where` = &quot;created_date &gt;= &#39;2026-01-01T00:00:00&#39;&quot;,
+    `$order` = &quot;created_date DESC&quot;,
+    `$limit` = 1000
+  )
+)
+
+
+# Check the response status. Let&#39;s hope to get a 200 code. yes !!
+status_code(response)</code></pre>
+<pre><code>## [1] 200</code></pre>
+<p>##Question 2: Parse response-Convert the JSON response into a data
+frame</p>
+<pre class="r"><code># Convert JSON response into the actual data frame
+
+requests_df &lt;- fromJSON(
+  rawToChar(response$content)
+)
+
+
+# Display number of rows
+
+nrow(requests_df)</code></pre>
+<pre><code>## [1] 1000</code></pre>
+<pre class="r"><code># Display column names
+
+names(requests_df)</code></pre>
+<pre><code>##  [1] &quot;sr_number&quot;           &quot;sr_type&quot;             &quot;sr_short_code&quot;      
+##  [4] &quot;owner_department&quot;    &quot;status&quot;              &quot;origin&quot;             
+##  [7] &quot;created_date&quot;        &quot;last_modified_date&quot;  &quot;street_address&quot;     
+## [10] &quot;city&quot;                &quot;state&quot;               &quot;zip_code&quot;           
+## [13] &quot;street_number&quot;       &quot;street_direction&quot;    &quot;street_name&quot;        
+## [16] &quot;street_type&quot;         &quot;duplicate&quot;           &quot;legacy_record&quot;      
+## [19] &quot;community_area&quot;      &quot;ward&quot;                &quot;electrical_district&quot;
+## [22] &quot;electricity_grid&quot;    &quot;police_sector&quot;       &quot;police_district&quot;    
+## [25] &quot;police_beat&quot;         &quot;precinct&quot;            &quot;created_hour&quot;       
+## [28] &quot;created_day_of_week&quot; &quot;created_month&quot;       &quot;x_coordinate&quot;       
+## [31] &quot;y_coordinate&quot;        &quot;latitude&quot;            &quot;longitude&quot;          
+## [34] &quot;location&quot;            &quot;closed_date&quot;         &quot;created_department&quot; 
+## [37] &quot;parent_sr_number&quot;</code></pre>
+</div>
+<div id="question-3-summarize-response" class="section level2">
+<h2>QUestion 3: Summarize Response</h2>
+<pre class="r"><code># Count service requests by type and display the 10 most common ones
+
+top_requests &lt;- requests_df %&gt;%
+  count(sr_type, sort = TRUE) %&gt;%
+  head(10)
+
+top_requests</code></pre>
+<pre><code>##                                    sr_type   n
+## 1                 Graffiti Removal Request 218
+## 2             Rodent Baiting/Rat Complaint  53
+## 3  Finance Parking Code Enforcement Review  45
+## 4               Yard Waste Pick-Up Request  37
+## 5    Sign Repair Request - All Other Signs  34
+## 6              Pothole in Street Complaint  33
+## 7             Traffic Signal Out Complaint  32
+## 8               Street Light Out Complaint  31
+## 9                           Tree Emergency  30
+## 10                Garbage Cart Maintenance  28</code></pre>
+</div>
+<div id="question-4-interpret-the-results" class="section level2">
+<h2>Question 4: Interpret the results</h2>
+</div>
+</div>
+<div id="the-311-service-request-show-that-the-top-request-in-2026-was-graffiti-removal" class="section level1">
+<h1>The 311 service request show that the top request in 2026 was
+Graffiti removal</h1>
+</div>
+<div id="request-with-218.-rodent-bait-came-second-with-53-and-finance-parking-code-enforcement" class="section level1">
+<h1>request with 218. Rodent bait came second with 53 and Finance
+Parking Code Enforcement</h1>
+</div>
+<div id="review-third-with-45.-the-remaining-seven-were-relatively-closer-in-request-count." class="section level1">
+<h1>review third with 45. The remaining seven, were relatively closer in
+request count.</h1>
+</div>
+<div id="i-think-what-the-data-doesnt-show-could-be-problems-that-people-do-not-report-or" class="section level1">
+<h1>I think what the data doesn’t show could be problems that people do
+not report or</h1>
+</div>
+<div id="that-are-not-in-the-top-1000." class="section level1">
+<h1>that are not in the top 1000.</h1>
+<div id="bonus-part-median-completion-time" class="section level2">
+<h2>BONUS PART: Median completion time</h2>
+<pre class="r"><code># Identify the 5 most common request types
+top5_types &lt;- requests_df %&gt;%
+  count(sr_type, sort = TRUE) %&gt;%
+  slice(1:5)
+
+top5_types</code></pre>
+<pre><code>##                                   sr_type   n
+## 1                Graffiti Removal Request 218
+## 2            Rodent Baiting/Rat Complaint  53
+## 3 Finance Parking Code Enforcement Review  45
+## 4              Yard Waste Pick-Up Request  37
+## 5   Sign Repair Request - All Other Signs  34</code></pre>
+<pre class="r"><code>#Store the names of the top 5 requests
+
+top5_names &lt;- top5_types$sr_type
+
+top5_names</code></pre>
+<pre><code>## [1] &quot;Graffiti Removal Request&quot;               
+## [2] &quot;Rodent Baiting/Rat Complaint&quot;           
+## [3] &quot;Finance Parking Code Enforcement Review&quot;
+## [4] &quot;Yard Waste Pick-Up Request&quot;             
+## [5] &quot;Sign Repair Request - All Other Signs&quot;</code></pre>
+<pre class="r"><code># Now attempting to build the table
+
+bonus_tbl &lt;- requests_df %&gt;%
+  filter(status == &quot;Completed&quot;) %&gt;%
+  mutate(
+    created_date = as.Date(created_date),
+    closed_date = as.Date(closed_date),
+    days_to_close = as.numeric(closed_date - created_date)
+  ) %&gt;%
+  filter(sr_type %in% top5_names) %&gt;%
+  group_by(sr_type) %&gt;%
+  summarise(
+    median_days = median(days_to_close, na.rm = TRUE)
+  ) %&gt;%
+  arrange(desc(median_days))
+
+bonus_tbl</code></pre>
+<pre><code>## # A tibble: 5 × 2
+##   sr_type                                 median_days
+##   &lt;chr&gt;                                         &lt;dbl&gt;
+## 1 Graffiti Removal Request                          1
+## 2 Rodent Baiting/Rat Complaint                      1
+## 3 Yard Waste Pick-Up Request                        1
+## 4 Finance Parking Code Enforcement Review           0
+## 5 Sign Repair Request - All Other Signs             0</code></pre>
+<pre class="r"><code>#double checking the request statuses
+
+unique(requests_df$status)</code></pre>
+<pre><code>## [1] &quot;Open&quot;      &quot;Completed&quot; &quot;Canceled&quot;</code></pre>
+</div>
 </div>
 <div id="part-iv-census-api" class="section level1">
 <h1>Part IV: Census API</h1>
