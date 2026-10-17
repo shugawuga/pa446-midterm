@@ -520,6 +520,170 @@ community_areas %&gt;%
 ## #   percent_hispanic_latino &lt;dbl&gt;, percent_black &lt;dbl&gt;, percent_asian &lt;dbl&gt;,
 ## #   percent_other_multiple_races &lt;dbl&gt;</code></pre>
 </div>
+<div id="question-2-scrape-with-css-selectors" class="section level2">
+<h2>Question 2: Scrape with CSS selectors</h2>
+<pre class="r"><code># Reading the Books to Scrape site
+
+books_url &lt;- &quot;https://books.toscrape.com/&quot;
+
+books_page &lt;- read_html(books_url)</code></pre>
+<pre class="r"><code># Extracting  all book containers from the webpage
+
+books &lt;- books_page %&gt;%
+  html_elements(&quot;article.product_pod&quot;)
+
+length(books)</code></pre>
+<pre><code>## [1] 20</code></pre>
+<pre class="r"><code># Now we have the 20 books, we must extract the title of each book
+
+titles &lt;- books %&gt;%
+  html_element(&quot;h3 a&quot;) %&gt;%
+  html_attr(&quot;title&quot;)
+
+# Let&#39;s take a look at the first few titles or the entire list to be sure
+
+head(titles)</code></pre>
+<pre><code>## [1] &quot;A Light in the Attic&quot;                 
+## [2] &quot;Tipping the Velvet&quot;                   
+## [3] &quot;Soumission&quot;                           
+## [4] &quot;Sharp Objects&quot;                        
+## [5] &quot;Sapiens: A Brief History of Humankind&quot;
+## [6] &quot;The Requiem Red&quot;</code></pre>
+<pre class="r"><code>titles</code></pre>
+<pre><code>##  [1] &quot;A Light in the Attic&quot;                                                                          
+##  [2] &quot;Tipping the Velvet&quot;                                                                            
+##  [3] &quot;Soumission&quot;                                                                                    
+##  [4] &quot;Sharp Objects&quot;                                                                                 
+##  [5] &quot;Sapiens: A Brief History of Humankind&quot;                                                         
+##  [6] &quot;The Requiem Red&quot;                                                                               
+##  [7] &quot;The Dirty Little Secrets of Getting Your Dream Job&quot;                                            
+##  [8] &quot;The Coming Woman: A Novel Based on the Life of the Infamous Feminist, Victoria Woodhull&quot;       
+##  [9] &quot;The Boys in the Boat: Nine Americans and Their Epic Quest for Gold at the 1936 Berlin Olympics&quot;
+## [10] &quot;The Black Maria&quot;                                                                               
+## [11] &quot;Starving Hearts (Triangular Trade Trilogy, #1)&quot;                                                
+## [12] &quot;Shakespeare&#39;s Sonnets&quot;                                                                         
+## [13] &quot;Set Me Free&quot;                                                                                   
+## [14] &quot;Scott Pilgrim&#39;s Precious Little Life (Scott Pilgrim #1)&quot;                                       
+## [15] &quot;Rip it Up and Start Again&quot;                                                                     
+## [16] &quot;Our Band Could Be Your Life: Scenes from the American Indie Underground, 1981-1991&quot;            
+## [17] &quot;Olio&quot;                                                                                          
+## [18] &quot;Mesaerion: The Best Science Fiction Stories 1800-1849&quot;                                         
+## [19] &quot;Libertarianism for Beginners&quot;                                                                  
+## [20] &quot;It&#39;s Only the Himalayas&quot;</code></pre>
+<pre class="r"><code># Extracting the price of each book
+
+prices &lt;- books %&gt;%
+  html_element(&quot;.price_color&quot;) %&gt;%
+  html_text2()
+
+# Display first few prices. Matches the prices in the website 
+
+head(prices)</code></pre>
+<pre><code>## [1] &quot;£51.77&quot; &quot;£53.74&quot; &quot;£50.10&quot; &quot;£47.82&quot; &quot;£54.23&quot; &quot;£22.65&quot;</code></pre>
+<pre class="r"><code># Extracting availability information
+
+availability &lt;- books %&gt;%
+  html_element(&quot;.instock&quot;) %&gt;%
+  html_text2()
+
+# Display first few availability values. It matches the website
+head(availability)</code></pre>
+<pre><code>## [1] &quot;In stock&quot; &quot;In stock&quot; &quot;In stock&quot; &quot;In stock&quot; &quot;In stock&quot; &quot;In stock&quot;</code></pre>
+<pre class="r"><code># Combining the scraped information into a tibble
+
+books_tbl &lt;- tibble(
+  title = titles,
+  price = prices,
+  availability = availability
+)
+
+# Display the number of rows
+
+nrow(books_tbl)</code></pre>
+<pre><code>## [1] 20</code></pre>
+<pre class="r"><code># Display the first rows
+
+head(books_tbl)</code></pre>
+<pre><code>## # A tibble: 6 × 3
+##   title                                 price  availability
+##   &lt;chr&gt;                                 &lt;chr&gt;  &lt;chr&gt;       
+## 1 A Light in the Attic                  £51.77 In stock    
+## 2 Tipping the Velvet                    £53.74 In stock    
+## 3 Soumission                            £50.10 In stock    
+## 4 Sharp Objects                         £47.82 In stock    
+## 5 Sapiens: A Brief History of Humankind £54.23 In stock    
+## 6 The Requiem Red                       £22.65 In stock</code></pre>
+<pre class="r"><code># Now I convert price from text (character data) to numeric (numbers)
+
+books_tbl &lt;- books_tbl %&gt;%
+  mutate(
+    price = as.numeric(str_remove(price, &quot;£&quot;))
+  )
+
+# Verifying the change to show numbers only without the currency sign
+
+head(books_tbl)</code></pre>
+<pre><code>## # A tibble: 6 × 3
+##   title                                 price availability
+##   &lt;chr&gt;                                 &lt;dbl&gt; &lt;chr&gt;       
+## 1 A Light in the Attic                   51.8 In stock    
+## 2 Tipping the Velvet                     53.7 In stock    
+## 3 Soumission                             50.1 In stock    
+## 4 Sharp Objects                          47.8 In stock    
+## 5 Sapiens: A Brief History of Humankind  54.2 In stock    
+## 6 The Requiem Red                        22.6 In stock</code></pre>
+<pre class="r"><code># Save the table to a CSV file as required
+write.csv(
+  books_tbl,
+  &quot;books.csv&quot;,
+  row.names = FALSE
+)</code></pre>
+<pre class="r"><code>#  BONUS QUESTION: Extract star ratings. The star counts from the website match.
+
+ratings &lt;- books %&gt;%
+  html_element(&quot;.star-rating&quot;) %&gt;%
+  html_attr(&quot;class&quot;)
+
+# Display first few ratings
+
+head(ratings)</code></pre>
+<pre><code>## [1] &quot;star-rating Three&quot; &quot;star-rating One&quot;   &quot;star-rating One&quot;  
+## [4] &quot;star-rating Four&quot;  &quot;star-rating Five&quot;  &quot;star-rating One&quot;</code></pre>
+<pre class="r"><code># Convert text ratings into numeric ratings
+
+ratings &lt;- ratings %&gt;%
+  str_remove(&quot;star-rating &quot;) %&gt;%
+  recode(
+    &quot;One&quot; = 1,
+    &quot;Two&quot; = 2,
+    &quot;Three&quot; = 3,
+    &quot;Four&quot; = 4,
+    &quot;Five&quot; = 5
+  ) %&gt;%
+  as.numeric()
+
+# Check the first few ratings to make sure we got numbers instead of spelled out
+# numbers
+
+head(ratings)</code></pre>
+<pre><code>## [1] 3 1 1 4 5 1</code></pre>
+<pre class="r"><code># Now that it worked finally, I need to add numeric star rating to the books table
+
+books_tbl &lt;- books_tbl %&gt;%
+  mutate(star_rating = ratings)
+
+# Display first rows
+head(books_tbl)</code></pre>
+<pre><code>## # A tibble: 6 × 4
+##   title                                 price availability star_rating
+##   &lt;chr&gt;                                 &lt;dbl&gt; &lt;chr&gt;              &lt;dbl&gt;
+## 1 A Light in the Attic                   51.8 In stock               3
+## 2 Tipping the Velvet                     53.7 In stock               1
+## 3 Soumission                             50.1 In stock               1
+## 4 Sharp Objects                          47.8 In stock               4
+## 5 Sapiens: A Brief History of Humankind  54.2 In stock               5
+## 6 The Requiem Red                        22.6 In stock               1</code></pre>
+</div>
 </div>
 <div id="part-iii-open-data-api" class="section level1">
 <h1>Part III: Open Data API</h1>

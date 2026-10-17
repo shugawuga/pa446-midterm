@@ -126,6 +126,169 @@ community_areas %>%
 ```
 
 
+## Question 2: Scrape with CSS selectors
+
+```{r}
+
+# Reading the Books to Scrape site
+
+books_url <- "https://books.toscrape.com/"
+
+books_page <- read_html(books_url)
+
+```
+
+
+
+
+```{r}
+
+# Extracting  all book containers from the webpage
+
+books <- books_page %>%
+  html_elements("article.product_pod")
+
+length(books)
+```
+
+
+```{r}
+# Now we have the 20 books, we must extract the title of each book
+
+titles <- books %>%
+  html_element("h3 a") %>%
+  html_attr("title")
+
+# Let's take a look at the first few titles or the entire list to be sure
+
+head(titles)
+titles
+```
+
+```{r}
+# Extracting the price of each book
+
+prices <- books %>%
+  html_element(".price_color") %>%
+  html_text2()
+
+# Display first few prices. Matches the prices in the website 
+
+head(prices)
+```
+
+
+```{r}
+# Extracting availability information
+
+availability <- books %>%
+  html_element(".instock") %>%
+  html_text2()
+
+# Display first few availability values. It matches the website
+head(availability)
+```
+
+
+```{r}
+# Combining the scraped information into a tibble
+
+books_tbl <- tibble(
+  title = titles,
+  price = prices,
+  availability = availability
+)
+
+# Display the number of rows
+
+nrow(books_tbl)
+
+# Display the first rows
+
+head(books_tbl)
+```
+
+
+
+
+```{r}
+# Now I convert price from text (character data) to numeric (numbers)
+
+books_tbl <- books_tbl %>%
+  mutate(
+    price = as.numeric(str_remove(price, "£"))
+  )
+
+# Verifying the change to show numbers only without the currency sign
+
+head(books_tbl)
+```
+
+
+
+```{r}
+# Save the table to a CSV file as required
+write.csv(
+  books_tbl,
+  "books.csv",
+  row.names = FALSE
+)
+```
+
+
+
+
+```{r}
+#  BONUS QUESTION: Extract star ratings. The star counts from the website match.
+
+ratings <- books %>%
+  html_element(".star-rating") %>%
+  html_attr("class")
+
+# Display first few ratings
+
+head(ratings)
+```
+
+
+
+
+```{r}
+# Convert text ratings into numeric ratings
+
+ratings <- ratings %>%
+  str_remove("star-rating ") %>%
+  recode(
+    "One" = 1,
+    "Two" = 2,
+    "Three" = 3,
+    "Four" = 4,
+    "Five" = 5
+  ) %>%
+  as.numeric()
+
+# Check the first few ratings to make sure we got numbers instead of spelled out
+# numbers
+
+head(ratings)
+```
+
+
+```{r}
+# Now that it worked finally, I need to add numeric star rating to the books table
+
+books_tbl <- books_tbl %>%
+  mutate(star_rating = ratings)
+
+# Display first rows
+head(books_tbl)
+
+
+
+```
+
+
+
 
 
 
