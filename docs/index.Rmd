@@ -237,6 +237,8 @@ write.csv(
 
 
 
+# Bonus Part: Star Ratings
+
 
 ```{r}
 #  BONUS QUESTION: Extract star ratings. The star counts from the website match.
