@@ -295,6 +295,152 @@ head(books_tbl)
 
 
 # Part III: Open Data API
+
+
+## Question 1: Requesting Data
+
+
+```{r}
+# Loading packages for API requests and JSON parsing just like in the lectures
+
+library(httr)
+library(jsonlite)
+library(dplyr)
+```
+
+
+
+
+```{r}
+
+# API endpoint for Chicago 311 service requests. endpoint is the website 
+
+endpoint <- "https://data.cityofchicago.org/resource/v6vf-nfxy.json"
+
+# Request the 1,000 most recent West Town requests from 2026 onward
+
+response <- GET(
+  endpoint,
+  query = list(
+    community_area = "24",
+    `$where` = "created_date >= '2026-01-01T00:00:00'",
+    `$order` = "created_date DESC",
+    `$limit` = 1000
+  )
+)
+
+
+# Check the response status. Let's hope to get a 200 code. yes !!
+status_code(response)
+```
+
+##Question 2: Parse response-Convert the JSON response into a data frame
+
+
+```{r}
+
+# Convert JSON response into the actual data frame
+
+requests_df <- fromJSON(
+  rawToChar(response$content)
+)
+
+
+# Display number of rows
+
+nrow(requests_df)
+
+# Display column names
+
+names(requests_df)
+```
+
+## QUestion 3:  Summarize Response
+
+
+```{r}
+
+# Count service requests by type and display the 10 most common ones
+
+top_requests <- requests_df %>%
+  count(sr_type, sort = TRUE) %>%
+  head(10)
+
+top_requests
+```
+
+
+## Question 4: Interpret the results 
+
+# The 311 service request show that the top request in 2026 was Graffiti removal
+# request with 218. Rodent bait came second with 53 and Finance Parking Code Enforcement
+# review third with 45. The remaining seven, were relatively closer in request count. 
+
+
+# I think what the data doesn't show could be problems that people do not report or 
+# that are not in the top 1000. 
+
+
+## BONUS PART: Median completion time
+
+
+
+```{r}
+
+# Identify the 5 most common request types
+top5_types <- requests_df %>%
+  count(sr_type, sort = TRUE) %>%
+  slice(1:5)
+
+top5_types
+
+```
+
+```{r}
+#Store the names of the top 5 requests
+
+top5_names <- top5_types$sr_type
+
+top5_names
+
+```
+
+
+
+
+```{r}
+# Now attempting to build the table
+
+bonus_tbl <- requests_df %>%
+  filter(status == "Completed") %>%
+  mutate(
+    created_date = as.Date(created_date),
+    closed_date = as.Date(closed_date),
+    days_to_close = as.numeric(closed_date - created_date)
+  ) %>%
+  filter(sr_type %in% top5_names) %>%
+  group_by(sr_type) %>%
+  summarise(
+    median_days = median(days_to_close, na.rm = TRUE)
+  ) %>%
+  arrange(desc(median_days))
+
+bonus_tbl
+
+
+```
+
+
+
+```{r}
+#double checking the request statuses
+
+unique(requests_df$status)
+```
+
+
+
+
 # Part IV: Census API
 # Part V: Civic Data Ethics
 # AI Use Statement
