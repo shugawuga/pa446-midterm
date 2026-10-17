@@ -11,7 +11,7 @@
 
 <meta name="author" content="Pablo R Valenzuela" />
 
-<meta name="date" content="2026-10-15" />
+<meta name="date" content="2026-10-16" />
 
 <title>PA 446 Midterm</title>
 
@@ -370,7 +370,7 @@ display: none;
 
 <h1 class="title toc-ignore">PA 446 Midterm</h1>
 <h4 class="author">Pablo R Valenzuela</h4>
-<h4 class="date">2026-10-15</h4>
+<h4 class="date">2026-10-16</h4>
 
 </div>
 
@@ -380,6 +380,313 @@ display: none;
 </div>
 <div id="part-ii-web-scraping" class="section level1">
 <h1>Part II: Web Scraping</h1>
+<div id="question-1-scrape-a-table" class="section level2">
+<h2>Question 1: Scrape a Table</h2>
+<pre class="r"><code># Loading packages used for web scraping and data cleaning per the lectures
+library(rvest)</code></pre>
+<pre><code>## Warning: package &#39;rvest&#39; was built under R version 4.5.3</code></pre>
+<pre class="r"><code>library(dplyr)</code></pre>
+<pre><code>## Warning: package &#39;dplyr&#39; was built under R version 4.5.3</code></pre>
+<pre><code>## 
+## Attaching package: &#39;dplyr&#39;</code></pre>
+<pre><code>## The following objects are masked from &#39;package:stats&#39;:
+## 
+##     filter, lag</code></pre>
+<pre><code>## The following objects are masked from &#39;package:base&#39;:
+## 
+##     intersect, setdiff, setequal, union</code></pre>
+<pre class="r"><code>library(janitor)</code></pre>
+<pre><code>## Warning: package &#39;janitor&#39; was built under R version 4.5.3</code></pre>
+<pre><code>## 
+## Attaching package: &#39;janitor&#39;</code></pre>
+<pre><code>## The following objects are masked from &#39;package:stats&#39;:
+## 
+##     chisq.test, fisher.test</code></pre>
+<pre class="r"><code>library(stringr)</code></pre>
+<pre><code>## Warning: package &#39;stringr&#39; was built under R version 4.5.3</code></pre>
+<pre class="r"><code># Reading the Wikipedia page containing Chicago community areas
+
+url &lt;- &quot;https://en.wikipedia.org/wiki/Community_areas_in_Chicago&quot;
+
+community_page &lt;- read_html(url)
+
+# Extract all tables from the page and let&#39;s inspect them
+
+tables &lt;- community_page %&gt;%
+  html_elements(&quot;table&quot;) %&gt;%
+  html_table()
+
+# Display the number of tables found
+
+length(tables)</code></pre>
+<pre><code>## [1] 5</code></pre>
+<pre class="r"><code># we have 5 tables displaying. The likely table we need is #2 with 78 rows 
+# and 13 columns</code></pre>
+<pre class="r"><code># Examine the table that contains Chicago community areas
+
+head(tables[[2]])</code></pre>
+<pre><code>## # A tibble: 6 × 13
+##     No. Name           `Total Population` White  `Hispanic/Latino` Black  Asian 
+##   &lt;int&gt; &lt;chr&gt;          &lt;chr&gt;              &lt;chr&gt;  &lt;chr&gt;             &lt;chr&gt;  &lt;chr&gt; 
+## 1     1 Rogers Park    54,173             24,150 12,245            11,729 3,389 
+## 2     2 West Ridge     78,373             30,859 16,129            9,180  17,104
+## 3     3 Uptown         56,344             29,284 7,971             10,713 5,831 
+## 4     4 Lincoln Square 41,651             25,958 7,405             1,732  3,814 
+## 5     5 North Center   36,014             26,413 4,267             846    2,239 
+## 6     6 Lake View      102,827            74,953 10,539            4,603  7,480 
+## # ℹ 6 more variables: `Other/Multiple Races` &lt;chr&gt;, `% White` &lt;dbl&gt;,
+## #   `% Hispanic/Latino` &lt;dbl&gt;, `% Black` &lt;dbl&gt;, `% Asian` &lt;dbl&gt;,
+## #   `% Other/Multiple Races` &lt;dbl&gt;</code></pre>
+<pre class="r"><code># I&#39;m now storing the community areas table and cleaning the column names
+
+community_areas &lt;- tables[[2]] %&gt;%
+  clean_names()
+
+# Displaying column names
+
+names(community_areas)</code></pre>
+<pre><code>##  [1] &quot;no&quot;                           &quot;name&quot;                        
+##  [3] &quot;total_population&quot;             &quot;white&quot;                       
+##  [5] &quot;hispanic_latino&quot;              &quot;black&quot;                       
+##  [7] &quot;asian&quot;                        &quot;other_multiple_races&quot;        
+##  [9] &quot;percent_white&quot;                &quot;percent_hispanic_latino&quot;     
+## [11] &quot;percent_black&quot;                &quot;percent_asian&quot;               
+## [13] &quot;percent_other_multiple_races&quot;</code></pre>
+<pre class="r"><code># Displaing dimensions
+
+dim(community_areas)</code></pre>
+<pre><code>## [1] 78 13</code></pre>
+<pre class="r"><code># All column names match the Wikipedia site :) </code></pre>
+<pre class="r"><code># Now I display the last rows of the table to locate the citywide total row. Checked
+# for the tail command to inspect what is the name of the last row. It&#39;s named 
+# Chicago
+
+tail(community_areas)</code></pre>
+<pre><code>## # A tibble: 6 × 13
+##      no name               total_population white   hispanic_latino black  asian
+##   &lt;int&gt; &lt;chr&gt;              &lt;chr&gt;            &lt;chr&gt;   &lt;chr&gt;           &lt;chr&gt;  &lt;chr&gt;
+## 1    73 Washington Heights 24,851           350     915             23,100 70   
+## 2    74 Mount Greenwood    19,059           15,698  1,782           668    134  
+## 3    75 Morgan Park        20,873           5,982   1,187           12,760 265  
+## 4    76 O&#39;Hare             14,394           8,915   1,648           881    2,066
+## 5    77 Edgewater          56,563           29,273  9,267           6,965  7,660
+## 6    NA Chicago            2,711,226        870,127 805,318         743,7… 196,…
+## # ℹ 6 more variables: other_multiple_races &lt;chr&gt;, percent_white &lt;dbl&gt;,
+## #   percent_hispanic_latino &lt;dbl&gt;, percent_black &lt;dbl&gt;, percent_asian &lt;dbl&gt;,
+## #   percent_other_multiple_races &lt;dbl&gt;</code></pre>
+<pre class="r"><code># I now remove the citywide Chicago total row
+
+community_areas &lt;- community_areas %&gt;%
+  filter(name != &quot;Chicago&quot;)
+
+# Now I must convert total population from character to numeric value
+
+community_areas &lt;- community_areas %&gt;%
+  mutate(
+    total_population = as.numeric(
+      str_remove_all(total_population, &quot;,&quot;)
+    )
+  )
+
+# Checking there are now 77 community areas
+
+dim(community_areas)</code></pre>
+<pre><code>## [1] 77 13</code></pre>
+<pre class="r"><code># Now I want to show the row for West Town
+
+community_areas %&gt;%
+  filter(name == &quot;West Town&quot;)</code></pre>
+<pre><code>## # A tibble: 1 × 13
+##      no name      total_population white  hispanic_latino black asian
+##   &lt;int&gt; &lt;chr&gt;                &lt;dbl&gt; &lt;chr&gt;  &lt;chr&gt;           &lt;chr&gt; &lt;chr&gt;
+## 1    24 West Town            88164 54,160 17,452          5,355 5,812
+## # ℹ 6 more variables: other_multiple_races &lt;chr&gt;, percent_white &lt;dbl&gt;,
+## #   percent_hispanic_latino &lt;dbl&gt;, percent_black &lt;dbl&gt;, percent_asian &lt;dbl&gt;,
+## #   percent_other_multiple_races &lt;dbl&gt;</code></pre>
+<pre class="r"><code># Display the 5 community areas with the largest populations
+
+community_areas %&gt;%
+  arrange(desc(total_population)) %&gt;%
+  head(5)</code></pre>
+<pre><code>## # A tibble: 5 × 13
+##      no name            total_population white  hispanic_latino black  asian 
+##   &lt;int&gt; &lt;chr&gt;                      &lt;dbl&gt; &lt;chr&gt;  &lt;chr&gt;           &lt;chr&gt;  &lt;chr&gt; 
+## 1     8 Near North Side           107331 69,049 8,884           8,520  15,939
+## 2     6 Lake View                 102827 74,953 10,539          4,603  7,480 
+## 3    25 Austin                     97452 5,452  21,212          67,261 830   
+## 4    24 West Town                  88164 54,160 17,452          5,355  5,812 
+## 5     2 West Ridge                 78373 30,859 16,129          9,180  17,104
+## # ℹ 6 more variables: other_multiple_races &lt;chr&gt;, percent_white &lt;dbl&gt;,
+## #   percent_hispanic_latino &lt;dbl&gt;, percent_black &lt;dbl&gt;, percent_asian &lt;dbl&gt;,
+## #   percent_other_multiple_races &lt;dbl&gt;</code></pre>
+</div>
+<div id="question-2-scrape-with-css-selectors" class="section level2">
+<h2>Question 2: Scrape with CSS selectors</h2>
+<pre class="r"><code># Reading the Books to Scrape site
+
+books_url &lt;- &quot;https://books.toscrape.com/&quot;
+
+books_page &lt;- read_html(books_url)</code></pre>
+<pre class="r"><code># Extracting  all book containers from the webpage
+
+books &lt;- books_page %&gt;%
+  html_elements(&quot;article.product_pod&quot;)
+
+length(books)</code></pre>
+<pre><code>## [1] 20</code></pre>
+<pre class="r"><code># Now we have the 20 books, we must extract the title of each book
+
+titles &lt;- books %&gt;%
+  html_element(&quot;h3 a&quot;) %&gt;%
+  html_attr(&quot;title&quot;)
+
+# Let&#39;s take a look at the first few titles or the entire list to be sure
+
+head(titles)</code></pre>
+<pre><code>## [1] &quot;A Light in the Attic&quot;                 
+## [2] &quot;Tipping the Velvet&quot;                   
+## [3] &quot;Soumission&quot;                           
+## [4] &quot;Sharp Objects&quot;                        
+## [5] &quot;Sapiens: A Brief History of Humankind&quot;
+## [6] &quot;The Requiem Red&quot;</code></pre>
+<pre class="r"><code>titles</code></pre>
+<pre><code>##  [1] &quot;A Light in the Attic&quot;                                                                          
+##  [2] &quot;Tipping the Velvet&quot;                                                                            
+##  [3] &quot;Soumission&quot;                                                                                    
+##  [4] &quot;Sharp Objects&quot;                                                                                 
+##  [5] &quot;Sapiens: A Brief History of Humankind&quot;                                                         
+##  [6] &quot;The Requiem Red&quot;                                                                               
+##  [7] &quot;The Dirty Little Secrets of Getting Your Dream Job&quot;                                            
+##  [8] &quot;The Coming Woman: A Novel Based on the Life of the Infamous Feminist, Victoria Woodhull&quot;       
+##  [9] &quot;The Boys in the Boat: Nine Americans and Their Epic Quest for Gold at the 1936 Berlin Olympics&quot;
+## [10] &quot;The Black Maria&quot;                                                                               
+## [11] &quot;Starving Hearts (Triangular Trade Trilogy, #1)&quot;                                                
+## [12] &quot;Shakespeare&#39;s Sonnets&quot;                                                                         
+## [13] &quot;Set Me Free&quot;                                                                                   
+## [14] &quot;Scott Pilgrim&#39;s Precious Little Life (Scott Pilgrim #1)&quot;                                       
+## [15] &quot;Rip it Up and Start Again&quot;                                                                     
+## [16] &quot;Our Band Could Be Your Life: Scenes from the American Indie Underground, 1981-1991&quot;            
+## [17] &quot;Olio&quot;                                                                                          
+## [18] &quot;Mesaerion: The Best Science Fiction Stories 1800-1849&quot;                                         
+## [19] &quot;Libertarianism for Beginners&quot;                                                                  
+## [20] &quot;It&#39;s Only the Himalayas&quot;</code></pre>
+<pre class="r"><code># Extracting the price of each book
+
+prices &lt;- books %&gt;%
+  html_element(&quot;.price_color&quot;) %&gt;%
+  html_text2()
+
+# Display first few prices. Matches the prices in the website 
+
+head(prices)</code></pre>
+<pre><code>## [1] &quot;£51.77&quot; &quot;£53.74&quot; &quot;£50.10&quot; &quot;£47.82&quot; &quot;£54.23&quot; &quot;£22.65&quot;</code></pre>
+<pre class="r"><code># Extracting availability information
+
+availability &lt;- books %&gt;%
+  html_element(&quot;.instock&quot;) %&gt;%
+  html_text2()
+
+# Display first few availability values. It matches the website
+head(availability)</code></pre>
+<pre><code>## [1] &quot;In stock&quot; &quot;In stock&quot; &quot;In stock&quot; &quot;In stock&quot; &quot;In stock&quot; &quot;In stock&quot;</code></pre>
+<pre class="r"><code># Combining the scraped information into a tibble
+
+books_tbl &lt;- tibble(
+  title = titles,
+  price = prices,
+  availability = availability
+)
+
+# Display the number of rows
+
+nrow(books_tbl)</code></pre>
+<pre><code>## [1] 20</code></pre>
+<pre class="r"><code># Display the first rows
+
+head(books_tbl)</code></pre>
+<pre><code>## # A tibble: 6 × 3
+##   title                                 price  availability
+##   &lt;chr&gt;                                 &lt;chr&gt;  &lt;chr&gt;       
+## 1 A Light in the Attic                  £51.77 In stock    
+## 2 Tipping the Velvet                    £53.74 In stock    
+## 3 Soumission                            £50.10 In stock    
+## 4 Sharp Objects                         £47.82 In stock    
+## 5 Sapiens: A Brief History of Humankind £54.23 In stock    
+## 6 The Requiem Red                       £22.65 In stock</code></pre>
+<pre class="r"><code># Now I convert price from text (character data) to numeric (numbers)
+
+books_tbl &lt;- books_tbl %&gt;%
+  mutate(
+    price = as.numeric(str_remove(price, &quot;£&quot;))
+  )
+
+# Verifying the change to show numbers only without the currency sign
+
+head(books_tbl)</code></pre>
+<pre><code>## # A tibble: 6 × 3
+##   title                                 price availability
+##   &lt;chr&gt;                                 &lt;dbl&gt; &lt;chr&gt;       
+## 1 A Light in the Attic                   51.8 In stock    
+## 2 Tipping the Velvet                     53.7 In stock    
+## 3 Soumission                             50.1 In stock    
+## 4 Sharp Objects                          47.8 In stock    
+## 5 Sapiens: A Brief History of Humankind  54.2 In stock    
+## 6 The Requiem Red                        22.6 In stock</code></pre>
+<pre class="r"><code># Save the table to a CSV file as required
+write.csv(
+  books_tbl,
+  &quot;books.csv&quot;,
+  row.names = FALSE
+)</code></pre>
+</div>
+</div>
+<div id="bonus-part-star-ratings" class="section level1">
+<h1>Bonus Part: Star Ratings</h1>
+<pre class="r"><code>#  BONUS QUESTION: Extract star ratings. The star counts from the website match.
+
+ratings &lt;- books %&gt;%
+  html_element(&quot;.star-rating&quot;) %&gt;%
+  html_attr(&quot;class&quot;)
+
+# Display first few ratings
+
+head(ratings)</code></pre>
+<pre><code>## [1] &quot;star-rating Three&quot; &quot;star-rating One&quot;   &quot;star-rating One&quot;  
+## [4] &quot;star-rating Four&quot;  &quot;star-rating Five&quot;  &quot;star-rating One&quot;</code></pre>
+<pre class="r"><code># Convert text ratings into numeric ratings
+
+ratings &lt;- ratings %&gt;%
+  str_remove(&quot;star-rating &quot;) %&gt;%
+  recode(
+    &quot;One&quot; = 1,
+    &quot;Two&quot; = 2,
+    &quot;Three&quot; = 3,
+    &quot;Four&quot; = 4,
+    &quot;Five&quot; = 5
+  ) %&gt;%
+  as.numeric()
+
+# Check the first few ratings to make sure we got numbers instead of spelled out
+# numbers
+
+head(ratings)</code></pre>
+<pre><code>## [1] 3 1 1 4 5 1</code></pre>
+<pre class="r"><code># Now that it worked finally, I need to add numeric star rating to the books table
+
+books_tbl &lt;- books_tbl %&gt;%
+  mutate(star_rating = ratings)
+
+# Display first rows
+head(books_tbl)</code></pre>
+<pre><code>## # A tibble: 6 × 4
+##   title                                 price availability star_rating
+##   &lt;chr&gt;                                 &lt;dbl&gt; &lt;chr&gt;              &lt;dbl&gt;
+## 1 A Light in the Attic                   51.8 In stock               3
+## 2 Tipping the Velvet                     53.7 In stock               1
+## 3 Soumission                             50.1 In stock               1
+## 4 Sharp Objects                          47.8 In stock               4
+## 5 Sapiens: A Brief History of Humankind  54.2 In stock               5
+## 6 The Requiem Red                        22.6 In stock               1</code></pre>
 </div>
 <div id="part-iii-open-data-api" class="section level1">
 <h1>Part III: Open Data API</h1>
