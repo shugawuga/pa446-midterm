@@ -442,6 +442,157 @@ unique(requests_df$status)
 
 
 # Part IV: Census API
+
+
+
+## Step 1: Identify the Variables
+
+
+```{r}
+library(tidycensus)
+```
+
+
+```{r}
+# Loading the ACS variable metadata
+acs_vars <- load_variables(
+  2024,
+  "acs5",
+  cache = TRUE
+)
+
+head(acs_vars)
+```
+
+
+
+
+```{r}
+acs_vars %>%
+  filter(grepl("50.0 percent or more", label))
+```
+
+
+
+
+```{r}
+
+# Let's find the Median Household Income. Which one is it though?
+
+acs_vars %>%
+  filter(grepl("Median household income", label))
+```
+
+
+```{r}
+# Let's find the Median Household Income 
+acs_vars %>%
+  filter(name == "B19013_001")
+```
+
+# Gross Rent as a Percentage of Household Income Total: B25070_001E
+# Gross Rent as a Percentage of Household Income 50.0 percent or more: B25070_010E
+# Median Household Income: B19013_001E
+
+
+
+
+
+## Step 2: Retrieve the data
+
+
+
+
+```{r}
+# Retrieve ACS data for all Ohio counties as requested
+ohio_data <- get_acs(
+  geography = "county",
+  state = "OH",
+  variables = c(
+    total_renters = "B25070_001",
+    severe_rent_burden = "B25070_010",
+    median_income = "B19013_001"
+  ),
+  year = 2024
+)
+
+# Display first rows
+head(ohio_data)
+```
+
+## Step 3: Clean and Transform
+
+
+## Step 3.1: Create a wide format of the data
+
+
+```{r}
+# Convert from long format to wide format.
+
+library(tidyverse)
+
+ohio_wide <- ohio_data %>%
+  select(NAME, variable, estimate) %>%
+  pivot_wider(
+    names_from = variable,
+    values_from = estimate
+  )
+
+# Display first rows
+head(ohio_wide)
+```
+
+
+## Step 3.2: Create Severe Burden Rate
+
+```{r}
+# Calculate severe rent burden rate at 50% or more
+
+ohio_wide <- ohio_wide %>%
+  mutate(
+    severe_burden_rate =
+      (severe_rent_burden / total_renters) * 100
+  )
+
+# Checking  first rows
+head(ohio_wide)
+```
+
+
+
+## Step 3.3: Arrange counties form highest to lowerst rate
+
+
+
+```{r}
+# Sort counties by severe rent burden rate
+ohio_wide <- ohio_wide %>%
+  arrange(desc(severe_burden_rate))
+
+# Display first rows
+head(ohio_wide)
+```
+
+
+## BONUS: Split the NAME column into COUNTY and STATE columns
+
+
+
+```{r}
+# Split NAME into COUNTY and STATE columns. Basically add more columns. 
+ohio_wide <- ohio_wide %>%
+  separate(
+    NAME,
+    into = c("county", "state"),
+    sep = ", "
+  )
+
+# Display first rows
+head(ohio_wide)
+```
+
+
+
 # Part V: Civic Data Ethics
 # AI Use Statement
 

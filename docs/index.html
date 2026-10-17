@@ -758,16 +758,16 @@ top_requests &lt;- requests_df %&gt;%
 
 top_requests</code></pre>
 <pre><code>##                                    sr_type   n
-## 1                 Graffiti Removal Request 218
-## 2             Rodent Baiting/Rat Complaint  53
-## 3  Finance Parking Code Enforcement Review  45
-## 4               Yard Waste Pick-Up Request  37
-## 5    Sign Repair Request - All Other Signs  34
-## 6              Pothole in Street Complaint  33
-## 7             Traffic Signal Out Complaint  32
-## 8               Street Light Out Complaint  31
+## 1                 Graffiti Removal Request 214
+## 2             Rodent Baiting/Rat Complaint  54
+## 3  Finance Parking Code Enforcement Review  46
+## 4               Yard Waste Pick-Up Request  39
+## 5              Pothole in Street Complaint  33
+## 6    Sign Repair Request - All Other Signs  33
+## 7               Street Light Out Complaint  31
+## 8             Traffic Signal Out Complaint  31
 ## 9                           Tree Emergency  30
-## 10                Garbage Cart Maintenance  28</code></pre>
+## 10                Garbage Cart Maintenance  27</code></pre>
 </div>
 <div id="question-4-interpret-the-results" class="section level2">
 <h2>Question 4: Interpret the results</h2>
@@ -800,11 +800,11 @@ top5_types &lt;- requests_df %&gt;%
 
 top5_types</code></pre>
 <pre><code>##                                   sr_type   n
-## 1                Graffiti Removal Request 218
-## 2            Rodent Baiting/Rat Complaint  53
-## 3 Finance Parking Code Enforcement Review  45
-## 4              Yard Waste Pick-Up Request  37
-## 5   Sign Repair Request - All Other Signs  34</code></pre>
+## 1                Graffiti Removal Request 214
+## 2            Rodent Baiting/Rat Complaint  54
+## 3 Finance Parking Code Enforcement Review  46
+## 4              Yard Waste Pick-Up Request  39
+## 5             Pothole in Street Complaint  33</code></pre>
 <pre class="r"><code>#Store the names of the top 5 requests
 
 top5_names &lt;- top5_types$sr_type
@@ -814,7 +814,7 @@ top5_names</code></pre>
 ## [2] &quot;Rodent Baiting/Rat Complaint&quot;           
 ## [3] &quot;Finance Parking Code Enforcement Review&quot;
 ## [4] &quot;Yard Waste Pick-Up Request&quot;             
-## [5] &quot;Sign Repair Request - All Other Signs&quot;</code></pre>
+## [5] &quot;Pothole in Street Complaint&quot;</code></pre>
 <pre class="r"><code># Now attempting to build the table
 
 bonus_tbl &lt;- requests_df %&gt;%
@@ -835,11 +835,11 @@ bonus_tbl</code></pre>
 <pre><code>## # A tibble: 5 × 2
 ##   sr_type                                 median_days
 ##   &lt;chr&gt;                                         &lt;dbl&gt;
-## 1 Graffiti Removal Request                          1
-## 2 Rodent Baiting/Rat Complaint                      1
-## 3 Yard Waste Pick-Up Request                        1
-## 4 Finance Parking Code Enforcement Review           0
-## 5 Sign Repair Request - All Other Signs             0</code></pre>
+## 1 Pothole in Street Complaint                       5
+## 2 Graffiti Removal Request                          1
+## 3 Rodent Baiting/Rat Complaint                      1
+## 4 Yard Waste Pick-Up Request                        1
+## 5 Finance Parking Code Enforcement Review           0</code></pre>
 <pre class="r"><code>#double checking the request statuses
 
 unique(requests_df$status)</code></pre>
@@ -848,6 +848,222 @@ unique(requests_df$status)</code></pre>
 </div>
 <div id="part-iv-census-api" class="section level1">
 <h1>Part IV: Census API</h1>
+<div id="step-1-identify-the-variables" class="section level2">
+<h2>Step 1: Identify the Variables</h2>
+<pre class="r"><code>library(tidycensus)</code></pre>
+<pre><code>## Warning: package &#39;tidycensus&#39; was built under R version 4.5.3</code></pre>
+<pre class="r"><code># Loading the ACS variable metadata
+acs_vars &lt;- load_variables(
+  2024,
+  &quot;acs5&quot;,
+  cache = TRUE
+)</code></pre>
+<pre><code>## Warning: `cache` is deprecated and ignored. tidycensus no longer writes
+## variable metadata to a local cache.</code></pre>
+<pre class="r"><code>head(acs_vars)</code></pre>
+<pre><code>## # A tibble: 6 × 4
+##   name        label                                   concept          geography
+##   &lt;chr&gt;       &lt;chr&gt;                                   &lt;chr&gt;            &lt;chr&gt;    
+## 1 B01001A_001 Estimate!!Total:                        Sex by Age (Whi… tract    
+## 2 B01001A_002 Estimate!!Total:!!Male:                 Sex by Age (Whi… tract    
+## 3 B01001A_003 Estimate!!Total:!!Male:!!Under 5 years  Sex by Age (Whi… tract    
+## 4 B01001A_004 Estimate!!Total:!!Male:!!5 to 9 years   Sex by Age (Whi… tract    
+## 5 B01001A_005 Estimate!!Total:!!Male:!!10 to 14 years Sex by Age (Whi… tract    
+## 6 B01001A_006 Estimate!!Total:!!Male:!!15 to 17 years Sex by Age (Whi… tract</code></pre>
+<pre class="r"><code>acs_vars %&gt;%
+  filter(grepl(&quot;50.0 percent or more&quot;, label))</code></pre>
+<pre><code>## # A tibble: 18 × 4
+##    name       label                                            concept geography
+##    &lt;chr&gt;      &lt;chr&gt;                                            &lt;chr&gt;   &lt;chr&gt;    
+##  1 B25070_010 Estimate!!Total:!!50.0 percent or more           Gross … block gr…
+##  2 B25074_009 Estimate!!Total:!!Less than $10,000:!!50.0 perc… Househ… block gr…
+##  3 B25074_018 Estimate!!Total:!!$10,000 to $19,999:!!50.0 per… Househ… block gr…
+##  4 B25074_027 Estimate!!Total:!!$20,000 to $34,999:!!50.0 per… Househ… block gr…
+##  5 B25074_036 Estimate!!Total:!!$35,000 to $49,999:!!50.0 per… Househ… block gr…
+##  6 B25074_045 Estimate!!Total:!!$50,000 to $74,999:!!50.0 per… Househ… block gr…
+##  7 B25074_054 Estimate!!Total:!!$75,000 to $99,999:!!50.0 per… Househ… block gr…
+##  8 B25074_063 Estimate!!Total:!!$100,000 or more:!!50.0 perce… Househ… block gr…
+##  9 B25091_011 Estimate!!Total:!!Housing units with a mortgage… Mortga… block gr…
+## 10 B25091_022 Estimate!!Total:!!Housing units without a mortg… Mortga… block gr…
+## 11 B25095_009 Estimate!!Total:!!Less than $10,000:!!50.0 perc… Househ… tract    
+## 12 B25095_018 Estimate!!Total:!!$10,000 to $19,999:!!50.0 per… Househ… tract    
+## 13 B25095_027 Estimate!!Total:!!$20,000 to $34,999:!!50.0 per… Househ… tract    
+## 14 B25095_036 Estimate!!Total:!!$35,000 to $49,999:!!50.0 per… Househ… tract    
+## 15 B25095_045 Estimate!!Total:!!$50,000 to $74,999:!!50.0 per… Househ… tract    
+## 16 B25095_054 Estimate!!Total:!!$75,000 to $99,999:!!50.0 per… Househ… tract    
+## 17 B25095_063 Estimate!!Total:!!$100,000 to $149,999:!!50.0 p… Househ… tract    
+## 18 B25095_072 Estimate!!Total:!!$150,000 or more:!!50.0 perce… Househ… tract</code></pre>
+<pre class="r"><code># Let&#39;s find the Median Household Income. Which one is it though?
+
+acs_vars %&gt;%
+  filter(grepl(&quot;Median household income&quot;, label))</code></pre>
+<pre><code>## # A tibble: 25 × 4
+##    name        label                                           concept geography
+##    &lt;chr&gt;       &lt;chr&gt;                                           &lt;chr&gt;   &lt;chr&gt;    
+##  1 B19013A_001 Estimate!!Median household income in the past … Median… tract    
+##  2 B19013B_001 Estimate!!Median household income in the past … Median… tract    
+##  3 B19013C_001 Estimate!!Median household income in the past … Median… tract    
+##  4 B19013D_001 Estimate!!Median household income in the past … Median… tract    
+##  5 B19013E_001 Estimate!!Median household income in the past … Median… county   
+##  6 B19013F_001 Estimate!!Median household income in the past … Median… tract    
+##  7 B19013G_001 Estimate!!Median household income in the past … Median… tract    
+##  8 B19013H_001 Estimate!!Median household income in the past … Median… tract    
+##  9 B19013I_001 Estimate!!Median household income in the past … Median… tract    
+## 10 B19013_001  Estimate!!Median household income in the past … Median… block gr…
+## # ℹ 15 more rows</code></pre>
+<pre class="r"><code># Let&#39;s find the Median Household Income 
+acs_vars %&gt;%
+  filter(name == &quot;B19013_001&quot;)</code></pre>
+<pre><code>## # A tibble: 1 × 4
+##   name       label                                             concept geography
+##   &lt;chr&gt;      &lt;chr&gt;                                             &lt;chr&gt;   &lt;chr&gt;    
+## 1 B19013_001 Estimate!!Median household income in the past 12… Median… block gr…</code></pre>
+</div>
+</div>
+<div id="gross-rent-as-a-percentage-of-household-income-total-b25070_001e" class="section level1">
+<h1>Gross Rent as a Percentage of Household Income Total:
+B25070_001E</h1>
+</div>
+<div id="gross-rent-as-a-percentage-of-household-income-50.0-percent-or-more-b25070_010e" class="section level1">
+<h1>Gross Rent as a Percentage of Household Income 50.0 percent or more:
+B25070_010E</h1>
+</div>
+<div id="median-household-income-b19013_001e" class="section level1">
+<h1>Median Household Income: B19013_001E</h1>
+<div id="step-2-retrieve-the-data" class="section level2">
+<h2>Step 2: Retrieve the data</h2>
+<pre class="r"><code># Retrieve ACS data for all Ohio counties as requested
+ohio_data &lt;- get_acs(
+  geography = &quot;county&quot;,
+  state = &quot;OH&quot;,
+  variables = c(
+    total_renters = &quot;B25070_001&quot;,
+    severe_rent_burden = &quot;B25070_010&quot;,
+    median_income = &quot;B19013_001&quot;
+  ),
+  year = 2024
+)</code></pre>
+<pre><code>## Getting data from the 2020-2024 5-year ACS</code></pre>
+<pre class="r"><code># Display first rows
+head(ohio_data)</code></pre>
+<pre><code>## # A tibble: 6 × 5
+##   GEOID NAME               variable           estimate   moe
+##   &lt;chr&gt; &lt;chr&gt;              &lt;chr&gt;                 &lt;dbl&gt; &lt;dbl&gt;
+## 1 39001 Adams County, Ohio median_income         50264  4725
+## 2 39001 Adams County, Ohio total_renters          2954   317
+## 3 39001 Adams County, Ohio severe_rent_burden      559   167
+## 4 39003 Allen County, Ohio median_income         64038  1778
+## 5 39003 Allen County, Ohio total_renters         13343   692
+## 6 39003 Allen County, Ohio severe_rent_burden     2537   354</code></pre>
+</div>
+<div id="step-3-clean-and-transform" class="section level2">
+<h2>Step 3: Clean and Transform</h2>
+</div>
+<div id="step-3.1-create-a-wide-format-of-the-data" class="section level2">
+<h2>Step 3.1: Create a wide format of the data</h2>
+<pre class="r"><code># Convert from long format to wide format.
+
+library(tidyverse)</code></pre>
+<pre><code>## Warning: package &#39;tidyverse&#39; was built under R version 4.5.2</code></pre>
+<pre><code>## Warning: package &#39;ggplot2&#39; was built under R version 4.5.3</code></pre>
+<pre><code>## Warning: package &#39;tibble&#39; was built under R version 4.5.3</code></pre>
+<pre><code>## Warning: package &#39;tidyr&#39; was built under R version 4.5.3</code></pre>
+<pre><code>## Warning: package &#39;readr&#39; was built under R version 4.5.3</code></pre>
+<pre><code>## Warning: package &#39;purrr&#39; was built under R version 4.5.3</code></pre>
+<pre><code>## Warning: package &#39;forcats&#39; was built under R version 4.5.3</code></pre>
+<pre><code>## Warning: package &#39;lubridate&#39; was built under R version 4.5.3</code></pre>
+<pre><code>## ── Attaching core tidyverse packages ──────────────────────── tidyverse 2.0.0 ──
+## ✔ forcats   1.0.1     ✔ readr     2.2.0
+## ✔ ggplot2   4.0.3     ✔ tibble    3.3.1
+## ✔ lubridate 1.9.5     ✔ tidyr     1.3.2
+## ✔ purrr     1.2.2     
+## ── Conflicts ────────────────────────────────────────── tidyverse_conflicts() ──
+## ✖ dplyr::filter()         masks stats::filter()
+## ✖ purrr::flatten()        masks jsonlite::flatten()
+## ✖ readr::guess_encoding() masks rvest::guess_encoding()
+## ✖ dplyr::lag()            masks stats::lag()
+## ℹ Use the conflicted package (&lt;http://conflicted.r-lib.org/&gt;) to force all conflicts to become errors</code></pre>
+<pre class="r"><code>ohio_wide &lt;- ohio_data %&gt;%
+  select(NAME, variable, estimate) %&gt;%
+  pivot_wider(
+    names_from = variable,
+    values_from = estimate
+  )
+
+# Display first rows
+head(ohio_wide)</code></pre>
+<pre><code>## # A tibble: 6 × 4
+##   NAME                   median_income total_renters severe_rent_burden
+##   &lt;chr&gt;                          &lt;dbl&gt;         &lt;dbl&gt;              &lt;dbl&gt;
+## 1 Adams County, Ohio             50264          2954                559
+## 2 Allen County, Ohio             64038         13343               2537
+## 3 Ashland County, Ohio           69860          4589                997
+## 4 Ashtabula County, Ohio         57728          9556               2046
+## 5 Athens County, Ohio            56001          9115               2751
+## 6 Auglaize County, Ohio          78660          4146                582</code></pre>
+</div>
+<div id="step-3.2-create-severe-burden-rate" class="section level2">
+<h2>Step 3.2: Create Severe Burden Rate</h2>
+<pre class="r"><code># Calculate severe rent burden rate at 50% or more
+
+ohio_wide &lt;- ohio_wide %&gt;%
+  mutate(
+    severe_burden_rate =
+      (severe_rent_burden / total_renters) * 100
+  )
+
+# Checking  first rows
+head(ohio_wide)</code></pre>
+<pre><code>## # A tibble: 6 × 5
+##   NAME         median_income total_renters severe_rent_burden severe_burden_rate
+##   &lt;chr&gt;                &lt;dbl&gt;         &lt;dbl&gt;              &lt;dbl&gt;              &lt;dbl&gt;
+## 1 Adams Count…         50264          2954                559               18.9
+## 2 Allen Count…         64038         13343               2537               19.0
+## 3 Ashland Cou…         69860          4589                997               21.7
+## 4 Ashtabula C…         57728          9556               2046               21.4
+## 5 Athens Coun…         56001          9115               2751               30.2
+## 6 Auglaize Co…         78660          4146                582               14.0</code></pre>
+</div>
+<div id="step-3.3-arrange-counties-form-highest-to-lowerst-rate" class="section level2">
+<h2>Step 3.3: Arrange counties form highest to lowerst rate</h2>
+<pre class="r"><code># Sort counties by severe rent burden rate
+ohio_wide &lt;- ohio_wide %&gt;%
+  arrange(desc(severe_burden_rate))
+
+# Display first rows
+head(ohio_wide)</code></pre>
+<pre><code>## # A tibble: 6 × 5
+##   NAME         median_income total_renters severe_rent_burden severe_burden_rate
+##   &lt;chr&gt;                &lt;dbl&gt;         &lt;dbl&gt;              &lt;dbl&gt;              &lt;dbl&gt;
+## 1 Athens Coun…         56001          9115               2751               30.2
+## 2 Portage Cou…         75766         19481               5410               27.8
+## 3 Hamilton Co…         72470        144332              35228               24.4
+## 4 Scioto Coun…         50609          9115               2194               24.1
+## 5 Lorain Coun…         73347         33139               7971               24.1
+## 6 Butler Coun…         81590         44147              10603               24.0</code></pre>
+</div>
+<div id="bonus-split-the-name-column-into-county-and-state-columns" class="section level2">
+<h2>BONUS: Split the NAME column into COUNTY and STATE columns</h2>
+<pre class="r"><code># Split NAME into COUNTY and STATE columns. Basically add more columns. 
+ohio_wide &lt;- ohio_wide %&gt;%
+  separate(
+    NAME,
+    into = c(&quot;county&quot;, &quot;state&quot;),
+    sep = &quot;, &quot;
+  )
+
+# Display first rows
+head(ohio_wide)</code></pre>
+<pre><code>## # A tibble: 6 × 6
+##   county state median_income total_renters severe_rent_burden severe_burden_rate
+##   &lt;chr&gt;  &lt;chr&gt;         &lt;dbl&gt;         &lt;dbl&gt;              &lt;dbl&gt;              &lt;dbl&gt;
+## 1 Athen… Ohio          56001          9115               2751               30.2
+## 2 Porta… Ohio          75766         19481               5410               27.8
+## 3 Hamil… Ohio          72470        144332              35228               24.4
+## 4 Sciot… Ohio          50609          9115               2194               24.1
+## 5 Lorai… Ohio          73347         33139               7971               24.1
+## 6 Butle… Ohio          81590         44147              10603               24.0</code></pre>
+</div>
 </div>
 <div id="part-v-civic-data-ethics" class="section level1">
 <h1>Part V: Civic Data Ethics</h1>
