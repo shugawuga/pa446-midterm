@@ -730,5 +730,39 @@ not complete counts of every household.
 
 
 # Part V: Civic Data Ethics
+
+# Question 1: Privacy
+
+
+Since the data includes physical addressed and coordinates, this is delicate as it can identify
+and provide more information about a specific household or coordinate. E.g. number of complaints submitted by address 1234 W Home St. etc. To deidentify, I would remove the address and possibly aggregate the complaints by neighborhood (e.g. Wicker Park, Bucktown, Chatham etc.)
+
+
+# QUestion 2: Bias and Data Quality
+
+
+I think that a city manager that assigns repairs solely on request counts could create an uneven service allocation to a city and not by intent. If more report issues in Wicker Park than in Lawndale, then those repairs will mostly to go Wicker Part (which is realistically possible). This means the same issues might occur in Lawndale but given the demographics, less report might be generated. 
+To mitigate for this I would say that a city manager should look at maybe infrastructure maintenance logs to see if those match the request counts. If they don't, further investigation might be warranted before dispatching crews.
+
+
+# Question 3: Scrapping Responsibly
+
+
+I think the web scraping activities performed in Part II were appropriate because the information was publicly available, factual and did not contain personally identifiable information as you described in our lectures. The Wikipedia page the Books to Scrape page did not contain private info. 
+
+One civic data situation when scrapping responsibly is when we are accessing personable identifiable information and a log in with password is necessary. I think a good example would be LINKEDIN, as this page contains name, email, employment and education information that can be used to further get more detailed information. 
+
+
+
 # AI Use Statement
+
+
+I used Copilot to assist me with code revision and debugging as I progressed through the exam  This helped me think of alternatives when writing the code for a better output. The assistance included help with web scrapping and the API part (as this was challenging honestly).I find this material very fascinating, though challenging. All work was executed, reviewed and honestly submitted with my efforts. 
+
+
+
+
+
+
+
 
