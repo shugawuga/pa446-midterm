@@ -372,13 +372,13 @@ top_requests
 
 ## Question 4: Interpret the results 
 
-# The 311 service request show that the top request in 2026 was Graffiti removal
-# request with 218. Rodent bait came second with 53 and Finance Parking Code Enforcement
-# review third with 45. The remaining seven, were relatively closer in request count. 
+The 311 service request show that the top request in 2026 was Graffiti removal
+request with 218. Rodent bait came second with 53 and Finance Parking Code Enforcement
+review third with 45. The remaining seven, were relatively closer in request count. 
 
 
-# I think what the data doesn't show could be problems that people do not report or 
-# that are not in the top 1000. 
+I think what the data doesn't show could be problems that people do not report or 
+that are not in the top 1000. 
 
 
 ## BONUS PART: Median completion time
@@ -590,6 +590,142 @@ ohio_wide <- ohio_wide %>%
 # Display first rows
 head(ohio_wide)
 ```
+
+
+## Step 4: Analyze
+
+## Step 4.1: Mean and Median of severe_burden_rate across counties 
+
+
+```{r}
+# computing the mean and median
+
+mean(ohio_wide$severe_burden_rate)
+
+median(ohio_wide$severe_burden_rate)
+
+```
+
+
+```{r}
+# Top 5 counties with highest severe rent burden rates
+
+top5_counties <- ohio_wide %>%
+  arrange(desc(severe_burden_rate)) %>%
+  slice(1:5)
+
+top5_counties
+```
+
+
+## Step 4.2: Identify the 5 counties with the highest rates and the 5 with the lowest rates.
+
+
+
+```{r}
+# Bottom 5 counties with lowest severe rent burden rates
+
+bottom5_counties <- ohio_wide %>%
+  arrange(severe_burden_rate) %>%
+  slice(1:5)
+
+bottom5_counties
+```
+
+
+
+## Step 5: Visualize
+
+
+## Step 5.1 : Scatterplot of Median Household Income and Severe Rent Burden
+
+
+```{r}
+#loading required library for visualization
+
+library(ggplot2)
+
+ggplot(
+  ohio_wide,
+  aes(
+    x = median_income,
+    y = severe_burden_rate
+  )
+) +
+  geom_point() +
+  geom_smooth(method = "lm", se = FALSE, color = "purple") +
+  labs(
+    title = "Median Household Income vs Severe Rent Burden Rate in Ohio Counties",
+    x = "Median Household Income ($)",
+    y = "Severe Rent Burden Rate (%)"
+  )
+```
+
+
+
+## Step 5.2: Bar chart of the top 5 and bottom 5 counties from Step 4, with bars in order
+
+
+```{r}
+
+# Combine top 5 and bottom 5 counties
+county_chart <- bind_rows(
+  top5_counties,
+  bottom5_counties
+)
+
+# Create the bar chart
+ggplot(
+  county_chart,
+  aes(
+    x = reorder(county, severe_burden_rate),
+    y = severe_burden_rate
+  )
+) +
+  geom_col(fill = "purple") +
+  coord_flip() +
+  labs(
+    title = "Top 5 and Bottom 5 Ohio Counties by Severe Rent Burden Rate",
+    x = "County",
+    y = "Severe Rent Burden Rate (%)"
+  )
+```
+
+
+
+## Step 6: Reflection
+
+
+# Step 6.1 : What relationship do you see between income and severe rent burden in Ohio, and what might explain it? 
+
+
+
+
+The linear models suggests that as income increases the severe burden rate 
+slighly decreased, meaning that those counties are spending not spending 50% 
+or more of their income in rent. Not as much as I would think but the 
+relationpship appears to be slightly negative. 
+
+One possible explanation can simply be income.Higher income households have 
+more financial resources available to cover housing cost. 
+
+
+
+# Step 6.2 : What are two limitations of using county-level ACS estimates to decide where to target rental assistance?
+
+
+
+Hmm.. I think that counties vary by size and conditions might vary within its' own
+county. For example, I visited the City of Aurora (Kane County) and the contrast 
+is extreme when it comes to the affluent vs. the blue collar areas of Aurora. 
+
+Having said that, I tied that if county average data can hide the true needs of 
+all their citizens when it comes to rental assistance. Policy makers should not 
+only use average county data but use supplemental data to make decisions.
+
+Another reason is because they are survey estimates with margins of error, 
+not complete counts of every household.
+
 
 
 
